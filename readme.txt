@@ -4,7 +4,7 @@ Tags: admin, white label, dashboard, branding, login
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 License: GPLv2 or later
 
 White-label and simplify the WordPress admin for clients.
@@ -46,6 +46,9 @@ Branding and styling apply to everyone. Hiding (menu items, notices, help, scree
 * Deleting the plugin removes all of its settings.
 
 == Changelog ==
+
+= 1.7.1 =
+* Fixes the icon in the Connect with Google button, which sat too low.
 
 = 1.7.0 =
 * New Email tab. Emails that WordPress would send as "WordPress" from wordpress@your-domain now go out under the site name from info@your-domain, or any name and address you choose. Sender details that other plugins set on purpose are left alone unless you switch on "Use for every email".

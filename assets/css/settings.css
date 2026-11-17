@@ -676,12 +676,25 @@
 .cas-wrap .cas-connect-btn.button-primary {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
+	justify-content: center;
+	gap: 10px;
 	min-height: 44px;
-	padding: 0 20px;
+	padding: 0 22px 0 18px;
+	line-height: 1.2;
+	white-space: nowrap;
 	border-radius: 8px;
 	font-size: 14px;
 	font-weight: 600;
+}
+/* WordPress gives icons inside buttons a tall line height, which pushed this one down. */
+.cas-wrap .cas-connect-btn.button-primary .dashicons {
+	flex: none;
+	width: 20px;
+	height: 20px;
+	margin: 0;
+	font-size: 20px;
+	line-height: 20px;
+	vertical-align: middle;
 }
 .cas-connect .cas-muted {
 	flex: 1 1 260px;
