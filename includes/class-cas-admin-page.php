@@ -689,6 +689,11 @@ final class CAS_Admin_Page {
 			/* translators: %s: plugin name */
 			echo '<p class="cas-callout cas-callout-warn">' . esc_html( sprintf( __( '%s is active on this site. If it has its own From name or From email set, those are used instead of the ones here.', 'clean-admin-studio' ), $plugin ) ) . '</p>';
 		}
+		if ( CAS_Mail::overridden() ) {
+			$real = CAS_Mail::effective();
+			/* translators: %s: sender such as "Site Name <info@example.com>" */
+			echo '<p class="cas-callout cas-callout-warn">' . esc_html( sprintf( __( 'Other code on this site sets the sender after this plugin, so emails go out as %s. The name and address below are not used while it does.', 'clean-admin-studio' ), trim( $real['name'] . ' <' . $real['email'] . '>' ) ) ) . '</p>';
+		}
 		self::toggle( 'mail_from_on', __( 'Use my own sender details', 'clean-admin-studio' ) );
 		/* translators: %s: site name */
 		self::text( 'mail_from_name', __( 'From name', 'clean-admin-studio' ), sprintf( __( 'Leave empty to use the site name: %s', 'clean-admin-studio' ), '<strong>' . esc_html( $site ) . '</strong>' ), $site );
