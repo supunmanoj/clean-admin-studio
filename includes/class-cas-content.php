@@ -66,6 +66,8 @@ final class CAS_Content {
 			add_filter( 'manage_' . $type . '_posts_columns', array( __CLASS__, 'add_columns' ), 99 );
 			add_action( 'manage_' . $type . '_posts_custom_column', array( __CLASS__, 'cell' ), 10, 2 );
 			add_filter( 'manage_edit-' . $type . '_sortable_columns', array( __CLASS__, 'sortable' ) );
+			// Runs after everything else has added its columns to this list.
+			add_filter( 'manage_edit-' . $type . '_columns', array( __CLASS__, 'dedupe' ), 9999 );
 		}
 	}
 
@@ -140,6 +142,45 @@ final class CAS_Content {
 			}
 		}
 		return $out + $new;
+	}
+
+	/**
+	 * With one of our columns showing, a second column with the same information
+	 * from the theme or another plugin (its own word count, a views counter...)
+	 * only crowds the Title. It is taken off the list. Nothing is deleted, and a
+	 * list that does not show our column keeps the other one.
+	 */
+	public static function dedupe( $cols ) {
+		if ( ! is_array( $cols ) || ! CAS::opt( 'col_dedupe' ) || CAS::safe_mode() ) {
+			return $cols;
+		}
+		$type  = isset( $GLOBALS['typenow'] ) ? (string) $GLOBALS['typenow'] : '';
+		$rules = array(
+			'cas_words'    => array( '/word[_-]?counts?|(^|[_-])words$/i', array( 'word count', 'word counts', 'wordcount', 'words' ) ),
+			'cas_views'    => array( '/(^|[_-])(post|page)?[_-]?views?([_-]count)?$|pageviews/i', array( 'views', 'post views', 'page views', 'pageviews', 'view count' ) ),
+			'cas_modified' => array( '/(^|[_-])(last[_-]?)?(modified|updated)([_-]date)?$/i', array( 'modified', 'last modified', 'updated', 'last updated', 'modified date', 'date modified' ) ),
+			'cas_thumb'    => array( '/(^|[_-])(thumb(nail)?s?|featured[_-]?image)$/i', array( 'thumbnail', 'thumb', 'featured image' ) ),
+		);
+		$core  = array( 'cb', 'title', 'author', 'date', 'categories', 'tags', 'comments', 'name', 'parent' );
+		foreach ( $rules as $ours => $rule ) {
+			if ( ! isset( $cols[ $ours ] ) ) {
+				continue;
+			}
+			if ( 'cas_thumb' === $ours && 'product' === $type ) {
+				continue; // A shop's own product picture column belongs to its list.
+			}
+			foreach ( $cols as $key => $label ) {
+				$key = (string) $key;
+				if ( 0 === strpos( $key, 'cas_' ) || 0 === strpos( $key, 'taxonomy-' ) || in_array( $key, $core, true ) ) {
+					continue;
+				}
+				$text = strtolower( trim( wp_strip_all_tags( is_string( $label ) ? $label : '' ) ) );
+				if ( preg_match( $rule[0], $key ) || in_array( $text, $rule[1], true ) ) {
+					unset( $cols[ $key ] );
+				}
+			}
+		}
+		return $cols;
 	}
 
 	public static function sortable( $cols ) {

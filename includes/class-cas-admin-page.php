@@ -535,6 +535,7 @@ final class CAS_Admin_Page {
 		self::select( 'col_views_period', __( 'Usual period for views', 'clean-admin-studio' ), CAS_Content::periods(), __( 'Each person can switch period on the list itself.', 'clean-admin-studio' ) );
 		self::toggle( 'col_modified', __( 'Last updated', 'clean-admin-studio' ), __( 'When each item was last changed. Sortable.', 'clean-admin-studio' ) );
 		self::toggle( 'col_thumb', __( 'Featured image', 'clean-admin-studio' ), __( 'A small thumbnail at the start of each row.', 'clean-admin-studio' ) );
+		self::toggle( 'col_dedupe', __( 'Replace matching columns from the theme or other plugins', 'clean-admin-studio' ), __( 'Where a column above is showing, a second column with the same information from your theme or another plugin (its own word count, views counter, last-updated date or thumbnail) is taken off that list. Nothing is deleted, and lists that do not show the column above keep the other one.', 'clean-admin-studio' ) );
 		self::card_close();
 
 		self::card_open( __( 'Shortcuts', 'clean-admin-studio' ) );

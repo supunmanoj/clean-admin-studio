@@ -115,6 +115,7 @@ final class CAS {
 			'col_views_period'    => array( 'choice', '28', array( '28', '90', '365', 'all' ) ),
 			'col_modified'        => array( 'bool', 0 ),
 			'col_thumb'           => array( 'bool', 0 ),
+			'col_dedupe'          => array( 'bool', 1 ),
 			'dup_link'            => array( 'bool', 0 ),
 			'comments_off'        => array( 'bool', 0 ),
 			'comments_keep_reviews' => array( 'bool', 1 ),
