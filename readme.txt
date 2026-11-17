@@ -4,7 +4,7 @@ Tags: admin, white label, dashboard, branding, login
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.7.3
+Stable tag: 1.7.4
 License: GPLv2 or later
 
 White-label and simplify the WordPress admin for clients.
@@ -46,6 +46,10 @@ Branding and styling apply to everyone. Hiding (menu items, notices, help, scree
 * Deleting the plugin removes all of its settings.
 
 == Changelog ==
+
+= 1.7.4 =
+* Menu editor: an icon you choose now also replaces icons that a theme or plugin draws with its own CSS (for example "Cloud templates" from the Newspaper theme), which used to stay as they were.
+* On phones the settings tabs scroll to the tab that is open.
 
 = 1.7.3 =
 * Updates are now found on shared hosting too. GitHub limits how often a server may ask its API, and that allowance is shared by every website on the same server; when it is used up the plugin now reads the public release page instead.

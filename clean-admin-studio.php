@@ -3,7 +3,7 @@
  * Plugin Name:       Clean Admin Studio
  * Plugin URI:        https://github.com/supunmanoj/clean-admin-studio
  * Description:       White-label and simplify the WordPress admin for clients: menu editor, branding, colors and fonts, modern dashboard, notification center and login page designer.
- * Version:           1.7.3
+ * Version:           1.7.4
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Supun Manoj Kumara
@@ -19,7 +19,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'CAS_VERSION', '1.7.3' ); // Keep in step with "Version:" above.
+define( 'CAS_VERSION', '1.7.4' ); // Keep in step with "Version:" above.
 define( 'CAS_FILE', __FILE__ );
 define( 'CAS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CAS_URL', plugin_dir_url( __FILE__ ) );

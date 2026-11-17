@@ -22,6 +22,7 @@ delete_transient( 'cas_insights_ga' );
 delete_transient( 'cas_insights_content' );
 delete_transient( 'cas_insights_posts' );
 delete_site_transient( 'cas_update_info' );
+delete_transient( 'cas_glyphs' );
 global $wpdb;
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}cas_mail_log" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL, WordPress.DB.DirectDatabaseQuery.SchemaChange
 delete_option( 'cas_mail_db' );
