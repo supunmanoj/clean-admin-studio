@@ -127,6 +127,26 @@ final class CAS_Mail {
 		}
 	}
 
+	/**
+	 * How a standard WordPress email really leaves once every plugin has had its
+	 * say. Differs from email() and name() when other code sets the sender later.
+	 */
+	public static function effective() {
+		return array(
+			'email' => (string) apply_filters( 'wp_mail_from', 'wordpress@' . self::domain() ),
+			'name'  => (string) apply_filters( 'wp_mail_from_name', 'WordPress' ),
+		);
+	}
+
+	/** True when something else on the site overrides the sender chosen here. */
+	public static function overridden() {
+		if ( ! self::on( 'mail_from_on' ) || '' === self::email() ) {
+			return false;
+		}
+		$real = self::effective();
+		return 0 !== strcasecmp( $real['email'], self::email() ) || $real['name'] !== self::name();
+	}
+
 	/** Name of an active email delivery plugin, which may set the sender itself. */
 	public static function delivery_plugin() {
 		$known = array(
