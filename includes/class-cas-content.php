@@ -167,7 +167,16 @@ final class CAS_Content {
 				continue;
 			}
 			if ( 'cas_thumb' === $ours && 'product' === $type ) {
-				continue; // A shop's own product picture column belongs to its list.
+				// A shop's own product picture column belongs to its list: where it
+				// is there, ours steps aside instead.
+				foreach ( $cols as $key => $label ) {
+					$text = strtolower( trim( wp_strip_all_tags( is_string( $label ) ? $label : '' ) ) );
+					if ( 0 !== strpos( (string) $key, 'cas_' ) && ( preg_match( $rule[0], (string) $key ) || in_array( $text, $rule[1], true ) ) ) {
+						unset( $cols['cas_thumb'] );
+						break;
+					}
+				}
+				continue;
 			}
 			foreach ( $cols as $key => $label ) {
 				$key = (string) $key;
