@@ -4,7 +4,7 @@ Tags: admin, white label, dashboard, branding, login
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 License: GPLv2 or later
 
 White-label and simplify the WordPress admin for clients.
@@ -43,3 +43,24 @@ Branding and styling apply to everyone. Hiding (menu items, notices, help, scree
 * Add ?cas_safe_mode=1 to any admin address (administrators only) to see the admin without any customization.
 * Add define( 'CAS_SAFE_MODE', true ); to wp-config.php to pause everything, including a custom login address.
 * Deleting the plugin removes all of its settings.
+
+== Changelog ==
+
+= 1.6.1 =
+* First version delivered through GitHub updates. Adds this changelog.
+
+= 1.6.0 =
+* Updates from GitHub through the normal WordPress Updates screen, with a "Check for updates" link and an Updates card under Tools.
+* Author details.
+
+= 1.5.x =
+* Dashboard Insights row: views, visitors, time per visitor and most viewed page from Google Analytics, posts updated and published.
+* Welcome area totals include what other plugins list in "At a Glance".
+* One Google connection method: your own Google sign-in app.
+
+= 1.4.x =
+* Content boxes follow the theme by default, with an optional custom style.
+
+= 1.3.x =
+* Word count, views, last updated and thumbnail columns; Duplicate link; comments off on the public site.
+* Classic Editor content boxes and editor tune-ups.
