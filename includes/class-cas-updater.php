@@ -63,6 +63,45 @@ final class CAS_Updater {
 		return is_array( $data ) ? $data : null;
 	}
 
+	/**
+	 * A second way to find the newest release, for when GitHub's API says no.
+	 * Its allowance of 60 questions an hour is shared by every website on the
+	 * same server, so on shared hosting it is often used up by strangers. The
+	 * public "latest release" address simply redirects to the newest release.
+	 *
+	 * @return array|null { version, package, url, changelog, published }
+	 */
+	private static function web() {
+		$args     = array(
+			'timeout'     => 10,
+			'redirection' => 0,
+			'headers'     => array( 'User-Agent' => 'Clean-Admin-Studio/' . CAS_VERSION ),
+		);
+		$response = wp_remote_head( 'https://github.com/' . self::REPO . '/releases/latest', $args );
+		if ( is_wp_error( $response ) ) {
+			return null;
+		}
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		$goes = wp_remote_retrieve_header( $response, 'location' );
+		$goes = is_array( $goes ) ? (string) reset( $goes ) : (string) $goes;
+		if ( $code < 300 || $code > 399 || ! preg_match( '#^https://github\.com/' . preg_quote( self::REPO, '#' ) . '/releases/tag/([vV]?(\d+(?:\.\d+){1,3}))$#', $goes, $m ) ) {
+			return null;
+		}
+		// The release must carry the ready-made plugin zip.
+		$package = 'https://github.com/' . self::REPO . '/releases/download/' . rawurlencode( $m[1] ) . '/clean-admin-studio.zip';
+		$check   = wp_remote_head( $package, $args );
+		if ( is_wp_error( $check ) || ! in_array( (int) wp_remote_retrieve_response_code( $check ), array( 200, 301, 302 ), true ) ) {
+			return null;
+		}
+		return array(
+			'version'   => $m[2],
+			'package'   => self::package( $package ),
+			'url'       => esc_url_raw( $goes ),
+			'changelog' => '',
+			'published' => '',
+		);
+	}
+
 	private static function package( $url ) {
 		return in_array( wp_parse_url( (string) $url, PHP_URL_HOST ), self::HOSTS, true ) ? esc_url_raw( $url ) : '';
 	}
@@ -117,6 +156,11 @@ final class CAS_Updater {
 				'changelog' => '',
 				'published' => '',
 			);
+		}
+
+		// The API gave nothing (most often its hourly limit): ask the public page.
+		if ( ! $found && null === $release && null === $tags ) {
+			$found = self::web();
 		}
 
 		if ( ! $found || '' === $found['package'] || ! preg_match( '/^\d+(\.\d+){1,3}$/', $found['version'] ) ) {
