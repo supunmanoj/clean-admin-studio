@@ -1,0 +1,52 @@
+# Publishes a GitHub release whenever the plugin's version number changes
+# on main. Sites running the plugin pick the release up as an update.
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read the version
+        id: plugin
+        run: |
+          version=$(grep -m1 -E '^\s*\*\s*Version:' clean-admin-studio.php | sed -E 's/.*Version:\s*//' | tr -d '[:space:]')
+          if ! echo "$version" | grep -Eq '^[0-9]+(\.[0-9]+){1,3}$'; then
+            echo "Could not read a version number from clean-admin-studio.php" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check the version numbers agree
+        if: steps.plugin.outputs.new == 'true'
+        env:
+          VERSION: ${{ steps.plugin.outputs.version }}
+        run: |
+          grep -Fq "define( 'CAS_VERSION', '$VERSION' )" clean-admin-studio.php || { echo "CAS_VERSION does not match Version: $VERSION" >&2; exit 1; }
+          grep -Fq "Stable tag: $VERSION" readme.txt || { echo "Stable tag in readme.txt does not match $VERSION" >&2; exit 1; }
+
+      - name: Build the plugin zip
+        if: steps.plugin.outputs.new == 'true'
+        run: git archive --format=zip --prefix=clean-admin-studio/ -o clean-admin-studio.zip HEAD
+
+      - name: Publish the release
+        if: steps.plugin.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.plugin.outputs.version }}
+        run: gh release create "v$VERSION" clean-admin-studio.zip --title "$VERSION" --generate-notes --target "$GITHUB_SHA"

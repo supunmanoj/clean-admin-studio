@@ -25,9 +25,10 @@ Once version 1.6.0 or later is installed, new versions appear under **Dashboard 
 
 To publish a new version:
 
-1. Change `Version:` and `CAS_VERSION` in `clean-admin-studio.php` (and `Stable tag` in `readme.txt`).
-2. Commit and push.
-3. Push a tag named after the version, for example `v1.6.1`, or publish a GitHub release with that tag.
+1. Change `Version:` and `CAS_VERSION` in `clean-admin-studio.php`, and `Stable tag` in `readme.txt`.
+2. Commit and push to `main`.
+
+That is all: the Release workflow sees the new version number, builds the plugin zip and publishes a GitHub release tagged with it (for example `v1.6.1`). A release published by hand, or a plain version tag, works too.
 
 Sites check GitHub every six hours. "Check for updates" on the Plugins screen or under Settings > Clean Admin Studio > Tools asks straight away.
 
