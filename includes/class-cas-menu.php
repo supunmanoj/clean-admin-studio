@@ -59,6 +59,83 @@ final class CAS_Menu {
 		return $out + $keyed;
 	}
 
+	/**
+	 * The character each Dashicon stands for, read from WordPress's own
+	 * stylesheet so it always matches the installed version.
+	 *
+	 * @param string[] $names Dashicon class names such as dashicons-admin-home.
+	 * @return array name => hexadecimal code
+	 */
+	private static function glyphs( $names ) {
+		$names = array_values( array_unique( array_filter( (array) $names ) ) );
+		if ( ! $names ) {
+			return array();
+		}
+		$version = get_bloginfo( 'version' );
+		$cached  = get_transient( 'cas_glyphs' );
+		$map     = ( is_array( $cached ) && isset( $cached['v'], $cached['map'] ) && $version === $cached['v'] && is_array( $cached['map'] ) ) ? $cached['map'] : array();
+		if ( ! array_diff( $names, array_keys( $map ) ) ) {
+			return $map;
+		}
+		$css = '';
+		foreach ( array( 'dashicons.min.css', 'dashicons.css' ) as $file ) {
+			$path = ABSPATH . WPINC . '/css/' . $file;
+			if ( is_readable( $path ) ) {
+				$css = (string) file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- a local core file.
+				break;
+			}
+		}
+		foreach ( $names as $name ) {
+			if ( ! isset( $map[ $name ] ) ) {
+				// An empty value remembers "not found", so the file is not read again on every screen.
+				$map[ $name ] = preg_match( '/\.' . preg_quote( $name, '/' ) . ':before\s*\{\s*content:\s*"\\\\([0-9a-f]{3,6})"/i', $css, $m ) ? strtolower( $m[1] ) : '';
+			}
+		}
+		set_transient(
+			'cas_glyphs',
+			array(
+				'v'   => $version,
+				'map' => $map,
+			),
+			WEEK_IN_SECONDS
+		);
+		return $map;
+	}
+
+	/**
+	 * Some themes and plugins draw their menu icon with their own CSS (an icon
+	 * font or a background picture), which hid an icon chosen here. These rules
+	 * make the chosen icon win for exactly the items that were given one.
+	 *
+	 * @param string[] $icons Chosen icons in the order their marker classes were given out.
+	 */
+	private static function icon_css( $icons ) {
+		if ( ! $icons ) {
+			return;
+		}
+		$dash = array();
+		foreach ( $icons as $icon ) {
+			if ( 0 === strpos( $icon, 'dashicons-' ) ) {
+				$dash[] = $icon;
+			}
+		}
+		$glyphs = self::glyphs( $dash );
+		$css    = '';
+		foreach ( $icons as $i => $icon ) {
+			$item = '#adminmenu#adminmenu li.cas-icon-' . ( $i + 1 ) . ' > a > div.wp-menu-image';
+			if ( 0 !== strpos( $icon, 'dashicons-' ) ) {
+				// A picture: no drawn icon beside or behind it.
+				$css .= $item . '{background-image:none!important}' . $item . ':before{content:none!important}';
+			} elseif ( ! empty( $glyphs[ $icon ] ) ) {
+				$css .= $item . '{background-image:none!important}'
+					. $item . ':before{content:"\\' . $glyphs[ $icon ] . '"!important;font-family:dashicons!important;font-size:var(--cas-icon,20px);font-weight:400;font-style:normal;line-height:1;position:static;top:auto;left:auto}';
+			}
+		}
+		if ( '' !== $css ) {
+			echo '<style id="cas-menu-icons">' . $css . '</style>' . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput -- built from marker numbers and hexadecimal codes only.
+		}
+	}
+
 	private static function is_sep( $item ) {
 		return isset( $item[4] ) && false !== strpos( $item[4], 'wp-menu-separator' );
 	}
@@ -94,7 +171,8 @@ final class CAS_Menu {
 		$restrict = CAS::restrict();
 
 		// Top level.
-		$out = array();
+		$out   = array();
+		$icons = array();
 		foreach ( self::ordered( self::keyed( $menu ), $d['order'] ) as $k => $item ) {
 			$c = isset( $d['items'][ $k ] ) ? $d['items'][ $k ] : array();
 			if ( $restrict && ! empty( $c['hidden'] ) ) {
@@ -108,10 +186,16 @@ final class CAS_Menu {
 					$item[6] = $c['icon'];
 					// Core items carry an icon class that would win over the new icon.
 					$item[4] = isset( $item[4] ) ? trim( preg_replace( '/\bmenu-icon-\S+/', '', $item[4] ) ) : '';
+					// A marker class, so the new icon can also be made to win over
+					// themes and plugins that draw their own icon with CSS.
+					$icons[]  = $c['icon'];
+					$item[4] .= ' cas-icon-' . count( $icons );
 				}
 			}
 			$out[] = $item;
 		}
+
+		self::icon_css( $icons );
 
 		// Tidy separators: none doubled, none first or last.
 		$clean    = array();

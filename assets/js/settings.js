@@ -24,6 +24,11 @@
 			$tabs.removeClass( 'is-active' ).removeAttr( 'aria-current' ).filter( '[data-tab="' + id + '"]' ).addClass( 'is-active' ).attr( 'aria-current', 'page' );
 			$panels.removeClass( 'is-active' ).filter( '[data-panel="' + id + '"]' ).addClass( 'is-active' );
 			$( '.cas-save' ).toggle( id !== 'tools' );
+			// On narrow screens the tabs are a strip that scrolls sideways: bring the open one into view.
+			var tab = $tabs.filter( '.is-active' )[0], strip = tab ? tab.parentNode : null;
+			if ( strip && strip.scrollWidth > strip.clientWidth + 1 ) {
+				strip.scrollLeft += tab.getBoundingClientRect().left - strip.getBoundingClientRect().left - ( strip.clientWidth - tab.offsetWidth ) / 2;
+			}
 			if ( remember ) {
 				try { window.localStorage.setItem( 'casTab', id ); } catch ( e ) {}
 				if ( window.history.replaceState ) {
