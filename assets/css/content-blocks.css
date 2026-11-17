@@ -1,0 +1,229 @@
+/* Clean Admin Studio - content boxes.
+   The boxes borrow their look from the theme: the font and text colour are
+   inherited, and surfaces and lines are tints of that text colour, so they
+   sit naturally on light and dark designs alike. The accent is the theme's
+   link colour. A custom look, when one is chosen in the settings, arrives as
+   the --cas-box-* variables; any that are missing keep following the theme. */
+
+.cas-box,
+.cas-steps,
+.cas-sources,
+.cas-button {
+	--cas-b-accent: var(--cas-box-accent, var(--wp--preset--color--primary, currentColor));
+	--cas-b-radius: var(--cas-box-radius, 14px);
+	--cas-b-base: var(--cas-box-bg, transparent);
+}
+
+/* Shared card ---------------------------------------------------------- */
+.cas-box {
+	margin: 1.6em 0;
+	padding: 1.1em 1.3em;
+	border: 1px solid rgba(128, 128, 128, 0.3);
+	border-radius: var(--cas-b-radius);
+	background: rgba(128, 128, 128, 0.07);
+	color: var(--cas-box-text, inherit);
+	font: inherit;
+	overflow-wrap: break-word;
+}
+.cas-box > :first-child {
+	margin-top: 0;
+}
+.cas-box > :last-child {
+	margin-bottom: 0;
+}
+.cas-box p {
+	margin: 0.6em 0;
+}
+.cas-box ul,
+.cas-box ol {
+	margin: 0.5em 0 0;
+}
+
+/* Quick answer ---------------------------------------------------------- */
+.cas-quick {
+	border-color: rgba(128, 128, 128, 0.35);
+	background: rgba(128, 128, 128, 0.08);
+	line-height: 1.65;
+}
+.cas-quick::before {
+	content: var(--cas-quick-label, "Quick answer");
+	display: block;
+	margin-bottom: 0.5em;
+	color: var(--cas-b-accent);
+	font-size: 0.72em;
+	font-weight: 800;
+	letter-spacing: 0.14em;
+	line-height: 1.4;
+	text-transform: uppercase;
+}
+
+/* Tip, note, warning ---------------------------------------------------- */
+.cas-callout {
+	padding: 1em 1.3em;
+	border: 0;
+	border-left: 4px solid var(--cas-b-accent);
+	border-radius: 0 var(--cas-b-radius) var(--cas-b-radius) 0;
+	background: rgba(128, 128, 128, 0.1);
+}
+.cas-callout.cas-info {
+	--cas-b-accent: #3b82f6;
+}
+.cas-callout.cas-warning {
+	--cas-b-accent: #dc2626;
+}
+
+/* Key points ------------------------------------------------------------ */
+.cas-keypoints ul {
+	padding-left: 1.2em;
+}
+.cas-keypoints li {
+	margin: 0.3em 0;
+}
+.cas-keypoints li::marker {
+	color: var(--cas-b-accent);
+}
+
+/* FAQ --------------------------------------------------------------------- */
+.cas-faq {
+	padding: 1.5em 1.5em 1em;
+}
+.cas-faq h2 {
+	margin: 0 0 0.6em;
+}
+.cas-faq h3,
+.cas-faq h4 {
+	margin: 1.1em 0 0;
+	padding-top: 1em;
+	border-top: 1px solid rgba(128, 128, 128, 0.3);
+	font-size: 1.08em;
+}
+.cas-faq > h3:first-child,
+.cas-faq > h4:first-child,
+.cas-faq h2 + h3,
+.cas-faq h2 + h4 {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: 0;
+}
+.cas-faq p {
+	margin: 0.5em 0 0.8em;
+}
+
+/* Checklist ------------------------------------------------------------- */
+.cas-checklist ul {
+	display: grid;
+	gap: 0.5em;
+	margin: 0.8em 0 0;
+	padding: 0;
+	list-style: none;
+}
+.cas-checklist li {
+	position: relative;
+	margin: 0;
+	padding-left: 1.8em;
+}
+.cas-checklist li::before {
+	content: "\2713";
+	position: absolute;
+	left: 0;
+	top: 0;
+	color: var(--cas-b-accent);
+	font-weight: 800;
+}
+
+/* Numbered steps -------------------------------------------------------- */
+ol.cas-steps {
+	display: grid;
+	gap: 0.9em;
+	margin: 1.6em 0;
+	padding: 0;
+	list-style: none;
+	counter-reset: cas-step;
+}
+ol.cas-steps > li {
+	position: relative;
+	min-height: 2em;
+	margin: 0;
+	padding: 0.2em 0 0 2.9em;
+	counter-increment: cas-step;
+}
+ol.cas-steps > li::before {
+	content: counter(cas-step);
+	position: absolute;
+	left: 0;
+	top: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2em;
+	height: 2em;
+	box-sizing: border-box;
+	border: 2px solid var(--cas-b-accent);
+	border-radius: 50%;
+	color: var(--cas-b-accent);
+	font-size: 0.9em;
+	font-weight: 700;
+	line-height: 1;
+}
+
+/* Button ---------------------------------------------------------------- */
+a.cas-button,
+a.cas-button:visited {
+	display: inline-block;
+	padding: 0.7em 1.4em;
+	border: 2px solid var(--cas-box-accent, currentColor);
+	border-radius: var(--cas-b-radius);
+	background: var(--cas-box-accent, transparent);
+	color: var(--cas-box-on-accent, inherit);
+	font-weight: 700;
+	line-height: 1.3;
+	text-decoration: none;
+}
+a.cas-button:hover,
+a.cas-button:focus {
+	filter: brightness(0.92);
+	text-decoration: none;
+}
+a.cas-button:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+
+/* Tints: surfaces and lines mixed from the text and accent colours. Kept
+   apart so browsers without color-mix() simply keep the neutral greys above. */
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+	.cas-box {
+		border-color: var(--cas-box-border, color-mix(in srgb, currentColor 16%, transparent));
+		background: color-mix(in srgb, currentColor var(--cas-box-tint, 5%), var(--cas-b-base));
+	}
+	.cas-quick {
+		border-color: var(--cas-box-border, color-mix(in srgb, var(--cas-b-accent) 34%, transparent));
+		background: linear-gradient(135deg, color-mix(in srgb, var(--cas-b-accent) 13%, var(--cas-b-base)), color-mix(in srgb, var(--cas-b-accent) 3%, var(--cas-b-base)));
+	}
+	.cas-callout {
+		border-left-color: var(--cas-b-accent);
+		background: color-mix(in srgb, var(--cas-b-accent) 11%, var(--cas-b-base));
+	}
+	.cas-faq h3,
+	.cas-faq h4 {
+		border-top-color: color-mix(in srgb, currentColor 14%, transparent);
+	}
+}
+
+/* Sources --------------------------------------------------------------- */
+.cas-sources {
+	font-size: 0.82em;
+	opacity: 0.75;
+}
+.cas-sources a {
+	color: inherit;
+}
+
+@media (max-width: 640px) {
+	.cas-box {
+		padding: 1em 1.05em;
+	}
+	.cas-faq {
+		padding: 1.2em 1.1em 0.6em;
+	}
+}
