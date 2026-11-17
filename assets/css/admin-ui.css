@@ -1,0 +1,822 @@
+/* Clean Admin Studio - always-on interface pieces (toolbar brand, client view,
+   notification center, dashboard welcome area). Colors fall back to WordPress
+   defaults when the custom theme is off. */
+
+/* Toolbar brand ----------------------------------------------------------- */
+#wpadminbar .cas-brand > .ab-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+}
+#wpadminbar .cas-brand .cas-bar-logo {
+	display: block;
+	width: auto;
+	height: 20px;
+	max-width: 120px;
+	border-radius: 3px;
+}
+
+/* Client view switch ------------------------------------------------------ */
+#wpadminbar .cas-view .ab-icon:before {
+	top: 2px;
+}
+#wpadminbar .cas-view-on > .ab-item {
+	background: #b45309 !important;
+	color: #fff !important;
+}
+#wpadminbar .cas-view-on > .ab-item .ab-icon:before,
+#wpadminbar .cas-view-on > .ab-item .ab-label {
+	color: #fff !important;
+}
+
+@media screen and (max-width: 1280px) {
+	#wpadminbar .cas-view .ab-label {
+		display: none;
+	}
+	#wpadminbar .cas-view .ab-icon {
+		margin-right: 0;
+	}
+}
+@media screen and (max-width: 1100px) {
+	#wpadminbar .cas-brand .cas-bar-name {
+		display: none;
+	}
+}
+
+/* Notification bell ------------------------------------------------------- */
+#wpadminbar .cas-bell > .ab-item {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+#wpadminbar .cas-bell .ab-icon {
+	margin-right: 0;
+	float: none;
+}
+#wpadminbar .cas-bell .ab-icon:before {
+	top: 2px;
+}
+#wpadminbar .cas-bell .cas-count {
+	display: inline-block;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 5px;
+	box-sizing: border-box;
+	border-radius: 9px;
+	background: #d63638;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 18px;
+	text-align: center;
+}
+#wpadminbar .cas-bell-empty {
+	display: none;
+}
+
+/* Phones have no room in the toolbar: the bell becomes a floating button. */
+.cas-bell-fab {
+	display: none;
+}
+@media screen and (max-width: 782px) {
+	.cas-bell-fab.has-items {
+		position: fixed;
+		right: 16px;
+		bottom: 16px;
+		z-index: 99970;
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		height: 48px;
+		padding: 0 16px;
+		border: 0;
+		border-radius: 24px;
+		background: var(--cas-accent, #2271b1);
+		color: var(--cas-on-accent, #fff);
+		font-size: 15px;
+		font-weight: 600;
+		box-shadow: 0 6px 18px rgba(15, 23, 42, 0.28);
+		cursor: pointer;
+	}
+	.cas-bell-fab:focus {
+		outline: 2px solid currentColor;
+		outline-offset: 2px;
+	}
+}
+
+/* Hide notices until the script has sorted them (only when scripts run). */
+body.js.cas-nc:not(.cas-nc-ready) #wpbody-content > .notice:not(.settings-error):not(#message):not(.inline),
+body.js.cas-nc:not(.cas-nc-ready) #wpbody-content > .update-nag,
+body.js.cas-nc:not(.cas-nc-ready) #wpbody-content .wrap > .notice:not(.settings-error):not(#message):not(.inline),
+body.js.cas-nc:not(.cas-nc-ready) #wpbody-content .wrap > div.updated:not(.settings-error):not(#message):not(.inline),
+body.js.cas-nc:not(.cas-nc-ready) #wpbody-content .wrap > div.error:not(.settings-error):not(#message):not(.inline) {
+	display: none;
+}
+
+/* "Hide from clients" mode. */
+body.cas-nh #wpbody-content > .notice:not(.settings-error):not(#message):not(.inline):not(.cas-keep),
+body.cas-nh #wpbody-content > .update-nag,
+body.cas-nh #wpbody-content > div.updated:not(.settings-error):not(#message):not(.inline):not(.cas-keep),
+body.cas-nh #wpbody-content > div.error:not(.settings-error):not(#message):not(.inline):not(.cas-keep),
+body.cas-nh #wpbody-content .wrap > .notice:not(.settings-error):not(#message):not(.inline):not(.cas-keep),
+body.cas-nh #wpbody-content .wrap > .update-nag,
+body.cas-nh #wpbody-content .wrap > div.updated:not(.settings-error):not(#message):not(.inline):not(.cas-keep),
+body.cas-nh #wpbody-content .wrap > div.error:not(.settings-error):not(#message):not(.inline):not(.cas-keep) {
+	display: none !important;
+}
+
+/* Notification panel ------------------------------------------------------ */
+.cas-notice-panel {
+	position: fixed;
+	top: 32px;
+	right: 0;
+	bottom: 0;
+	z-index: 99990;
+	width: 420px;
+	max-width: 100vw;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	box-shadow: -12px 0 32px rgba(15, 23, 42, 0.14);
+	transform: translateX(105%);
+	visibility: hidden;
+	transition: transform 0.2s ease, visibility 0s linear 0.2s;
+}
+body.cas-np-open .cas-notice-panel {
+	transform: none;
+	visibility: visible;
+	transition: transform 0.2s ease;
+}
+.cas-np-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 99980;
+	background: rgba(15, 23, 42, 0.28);
+	display: none;
+}
+body.cas-np-open .cas-np-backdrop {
+	display: block;
+}
+.cas-np-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 18px;
+	border-bottom: 1px solid #e5e7eb;
+	font-size: 15px;
+}
+.cas-np-close {
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 0;
+	border-radius: 6px;
+	background: transparent;
+	color: #50575e;
+	cursor: pointer;
+}
+.cas-np-close:hover,
+.cas-np-close:focus {
+	background: #f0f0f1;
+	color: #1d2327;
+}
+.cas-np-close .dashicons {
+	line-height: 32px;
+	height: 32px;
+}
+.cas-np-body {
+	flex: 1;
+	overflow-y: auto;
+	padding: 14px 18px 24px;
+}
+.cas-np-body > * {
+	display: block !important;
+	position: relative;
+	margin: 0 0 12px !important;
+	max-width: none;
+	box-shadow: none;
+	border-top: 1px solid #e5e7eb;
+	border-right: 1px solid #e5e7eb;
+	border-bottom: 1px solid #e5e7eb;
+	border-radius: 6px;
+	overflow-wrap: anywhere;
+}
+.cas-np-body > .update-nag {
+	padding: 10px 14px;
+	border-left: 4px solid #dba617;
+	background: #fff;
+}
+.cas-np-body img {
+	max-width: 100%;
+	height: auto;
+}
+.cas-np-empty {
+	display: none;
+	padding: 28px 18px;
+	margin: 0;
+	color: #646970;
+	text-align: center;
+}
+.cas-notice-panel.is-empty .cas-np-empty {
+	display: block;
+}
+.cas-notice-panel.is-empty .cas-np-body {
+	display: none;
+}
+@media screen and (max-width: 782px) {
+	.cas-notice-panel {
+		top: 46px;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.cas-notice-panel,
+	body.cas-np-open .cas-notice-panel {
+		transition: none;
+	}
+}
+
+/* Dashboard welcome area -------------------------------------------------- */
+body.cas-has-hero #wpbody-content > .wrap > h1 {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+}
+.cas-hero {
+	clear: both;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 24px;
+	align-items: center;
+	justify-content: space-between;
+	margin: 24px 20px 4px 2px;
+	padding: 28px 32px;
+	border-radius: 14px;
+	background: var(--cas-menu-bg, #1d2327);
+	color: var(--cas-menu-strong, #fff);
+	box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+.cas-hero-main {
+	flex: 1 1 320px;
+	min-width: 0;
+}
+.cas-hero h2 {
+	margin: 0 0 6px;
+	padding: 0;
+	color: inherit;
+	font-size: 24px;
+	font-weight: 600;
+	line-height: 1.3;
+}
+.cas-hero-text,
+.cas-hero-text p {
+	margin: 0 0 4px;
+	color: inherit;
+	font-size: 14px;
+	line-height: 1.6;
+	opacity: 0.85;
+}
+.cas-hero-text a {
+	color: inherit;
+	text-decoration: underline;
+}
+.cas-hero-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 16px;
+}
+.cas-hero-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 14px;
+	border-radius: 8px;
+	background: var(--cas-accent, #2271b1);
+	color: var(--cas-on-accent, #fff);
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 20px;
+	text-decoration: none;
+	transition: background 0.15s ease;
+}
+.cas-hero-btn:hover,
+.cas-hero-btn:focus {
+	background: var(--cas-accent-hover, #135e96);
+	color: var(--cas-on-accent, #fff);
+}
+.cas-hero-btn:focus {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+	box-shadow: none;
+}
+.cas-hero-btn .dashicons {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+}
+.cas-hero-btn-alt {
+	background: transparent;
+	color: inherit;
+	box-shadow: inset 0 0 0 1px currentColor;
+}
+.cas-hero-btn-alt:hover,
+.cas-hero-btn-alt:focus {
+	background: rgba(127, 127, 127, 0.22);
+	color: inherit;
+}
+.cas-stats {
+	display: flex;
+	flex: 0 1 auto;
+	flex-wrap: wrap;
+	gap: 10px;
+	max-width: 100%;
+}
+.cas-stat {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	column-gap: 10px;
+	align-items: center;
+	min-width: 108px;
+	padding: 12px 16px;
+	border-radius: 10px;
+	background: rgba(127, 127, 127, 0.18);
+	color: inherit;
+	text-decoration: none;
+	transition: background 0.15s ease;
+}
+.cas-stat:hover,
+.cas-stat:focus {
+	background: rgba(127, 127, 127, 0.3);
+	color: inherit;
+}
+.cas-stat:focus {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+	box-shadow: none;
+}
+.cas-stat .dashicons {
+	grid-row: span 2;
+	width: 24px;
+	height: 24px;
+	font-size: 24px;
+	opacity: 0.75;
+}
+.cas-stat strong {
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.2;
+}
+.cas-stat em {
+	font-size: 12px;
+	font-style: normal;
+	opacity: 0.8;
+}
+@media screen and (max-width: 782px) {
+	.cas-hero {
+		margin: 16px 10px 4px 0;
+		padding: 22px 20px;
+	}
+	.cas-stat {
+		flex: 1 1 40%;
+	}
+}
+
+/* Insights row under the welcome area ----------------------------------- */
+.cas-insights {
+	clear: both;
+	margin: 18px 20px 6px 2px;
+}
+.cas-in-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 4px 16px;
+	margin: 0 4px 10px;
+}
+.cas-in-head h3 {
+	margin: 0;
+	padding: 0;
+	color: var(--cas-heading, #1d2327);
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+.cas-in-head span {
+	color: #6b7280;
+	font-size: 12px;
+}
+.cas-in-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+	gap: 12px;
+}
+.cas-in-tile {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 104px;
+	box-sizing: border-box;
+	padding: 16px 18px 14px;
+	overflow: hidden;
+	border: 1px solid #e5e7eb;
+	border-radius: 14px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	color: #111827;
+	text-decoration: none;
+	transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+a.cas-in-tile:hover,
+a.cas-in-tile:focus {
+	border-color: var(--cas-accent, #2271b1);
+	box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+	color: #111827;
+	transform: translateY(-1px);
+}
+a.cas-in-tile:focus {
+	outline: 2px solid var(--cas-accent, #2271b1);
+	outline-offset: 2px;
+}
+.cas-in-top {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+.cas-in-ico.dashicons {
+	flex: none;
+	width: 28px;
+	height: 28px;
+	border-radius: 8px;
+	background: var(--cas-accent-soft, rgba(34, 113, 177, 0.12));
+	color: var(--cas-accent, #2271b1);
+	font-size: 16px;
+	line-height: 28px;
+	text-align: center;
+}
+.cas-in-label {
+	overflow: hidden;
+	color: #4b5563;
+	font-size: 12.5px;
+	font-weight: 500;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.cas-in-value {
+	color: #111827;
+	font-size: 26px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: -0.01em;
+	line-height: 1.15;
+}
+.cas-in-title {
+	display: -webkit-box;
+	overflow: hidden;
+	color: #111827;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.35;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+.cas-in-sub {
+	margin-top: 6px;
+	color: #6b7280;
+	font-size: 12px;
+	line-height: 1.5;
+}
+.cas-in-delta {
+	display: inline-block;
+	margin-right: 2px;
+	padding: 0 7px;
+	border-radius: 999px;
+	background: #eef0f3;
+	color: #4b5563;
+	font-size: 11.5px;
+	font-weight: 600;
+	line-height: 19px;
+	font-variant-numeric: tabular-nums;
+}
+.cas-in-delta.cas-in-up {
+	background: #e6f6ec;
+	color: #0b6b34;
+}
+.cas-in-delta.cas-in-down {
+	background: #fdecec;
+	color: #b3261e;
+}
+/* The Views tile carries the 28-day trend along its lower edge. */
+.cas-in-views {
+	padding-bottom: 50px;
+}
+.cas-in-spark {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	display: block;
+	width: 100%;
+	height: 42px;
+	color: var(--cas-accent, #2271b1);
+	pointer-events: none;
+}
+.cas-in-hint {
+	border-style: dashed;
+	background: transparent;
+	box-shadow: none;
+}
+/* Six tiles: one row on wide screens, with more room for Views. */
+@media screen and (min-width: 1400px) {
+	.cas-in-grid.cas-in-n6 {
+		grid-template-columns: 1.5fr repeat(5, minmax(0, 1fr));
+	}
+}
+@media screen and (min-width: 783px) and (max-width: 1399px) {
+	.cas-in-grid.cas-in-n6,
+	.cas-in-grid.cas-in-n5 {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+@media screen and (max-width: 782px) {
+	.cas-insights {
+		margin: 14px 10px 6px 0;
+	}
+	.cas-in-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 10px;
+	}
+	.cas-in-views,
+	.cas-in-wide-sm {
+		grid-column: 1 / -1;
+	}
+	.cas-in-tile {
+		padding: 14px 14px 12px;
+	}
+	.cas-in-views {
+		padding-bottom: 48px;
+	}
+	.cas-in-value {
+		font-size: 22px;
+	}
+}
+/* Placeholders while the numbers load. */
+.cas-in-skel {
+	gap: 10px;
+	justify-content: center;
+}
+.cas-in-bar {
+	display: block;
+	width: 55%;
+	height: 10px;
+	border-radius: 6px;
+	background: linear-gradient(90deg, #eef0f3 25%, #f7f8fa 37%, #eef0f3 63%);
+	background-size: 400% 100%;
+	animation: cas-in-shimmer 1.4s ease infinite;
+}
+.cas-in-bar:nth-child(2) {
+	width: 38%;
+	height: 22px;
+}
+.cas-in-bar:nth-child(3) {
+	width: 70%;
+}
+@keyframes cas-in-shimmer {
+	0% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0 50%;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.cas-in-bar {
+		animation: none;
+	}
+	.cas-in-tile {
+		transition: none;
+	}
+}
+
+/* Extra dashboard widgets ------------------------------------------------- */
+.cas-w-tiles {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 8px;
+	margin: 0 0 6px;
+}
+.cas-w-tile {
+	padding: 10px 12px;
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	background: #fafbfc;
+}
+.cas-w-tile strong {
+	display: block;
+	color: #111827;
+	font-size: 22px;
+	font-weight: 600;
+	line-height: 1.2;
+}
+.cas-w-tile span {
+	display: block;
+	color: #374151;
+	font-size: 12px;
+}
+.cas-w-tile em {
+	display: block;
+	margin-top: 2px;
+	color: #6b7280;
+	font-size: 11px;
+	font-style: normal;
+}
+.cas-spark {
+	display: block;
+	width: 100%;
+	height: 48px;
+	margin: 8px 0 2px;
+	color: var(--cas-accent, #2271b1);
+}
+#dashboard-widgets .cas-w-cap {
+	margin: 0 0 10px;
+	color: #6b7280;
+	font-size: 11px;
+}
+#dashboard-widgets .cas-w-h {
+	margin: 14px 0 2px;
+	color: #374151;
+	font-size: 12px;
+	font-weight: 600;
+}
+.cas-w-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.cas-w-list li {
+	display: flex;
+	gap: 10px;
+	align-items: baseline;
+	justify-content: space-between;
+	margin: 0;
+	padding: 7px 0;
+	border-top: 1px solid #f0f1f3;
+}
+.cas-w-list li:first-child {
+	border-top: 0;
+}
+.cas-w-main {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.cas-w-meta {
+	flex-shrink: 0;
+	color: #6b7280;
+	font-size: 12px;
+	white-space: nowrap;
+}
+.cas-w-check li {
+	align-items: flex-start;
+	justify-content: flex-start;
+}
+.cas-w-check .dashicons {
+	flex-shrink: 0;
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+}
+.cas-w-ok .dashicons {
+	color: #008a20;
+}
+.cas-w-warn .dashicons {
+	color: #b26200;
+}
+#dashboard-widgets .cas-w-foot {
+	margin: 12px 0 0;
+	padding-top: 10px;
+	border-top: 1px solid #f0f1f3;
+	color: #6b7280;
+	font-size: 12px;
+}
+.cas-w-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.cas-w-links li {
+	margin: 0;
+}
+.cas-w-links a {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 7px 12px;
+	border: 1px solid #d1d5db;
+	border-radius: 8px;
+	background: #fff;
+	font-weight: 500;
+	text-decoration: none;
+}
+.cas-w-links a:hover,
+.cas-w-links a:focus {
+	border-color: var(--cas-accent, #2271b1);
+}
+.cas-w-links .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+}
+.cas-w-note > :first-child {
+	margin-top: 0;
+}
+.cas-w-note > :last-child {
+	margin-bottom: 0;
+}
+
+/* Content list columns ----------------------------------------------------
+   Sortable headings carry no padding of their own, plain ones add 20px. */
+.fixed .column-cas_words {
+	width: 5.5em;
+}
+.fixed .column-cas_views {
+	width: 4em;
+}
+.fixed .column-cas_modified {
+	width: 7.5em;
+}
+.fixed .column-cas_thumb {
+	width: 40px;
+}
+.column-cas_words,
+.column-cas_views {
+	white-space: nowrap;
+}
+.column-cas_thumb img,
+.column-cas_thumb .cas-nothumb {
+	display: block;
+	width: 40px;
+	height: 40px;
+	border-radius: 6px;
+	object-fit: cover;
+}
+.column-cas_thumb .cas-nothumb {
+	border: 1px dashed #c3c4c7;
+	box-sizing: border-box;
+}
+th.column-cas_thumb .dashicons {
+	color: #8c8f94;
+}
+.column-cas_views .cas-dash {
+	color: #8c8f94;
+}
+
+/* Make room: slimmer standard columns while the extra ones are showing. */
+@media screen and (min-width: 783px) {
+	.cas-cols .fixed .column-categories,
+	.cas-cols .fixed .column-tags {
+		width: 10%;
+	}
+	.cas-cols .fixed .column-author {
+		width: 8%;
+	}
+	.cas-cols .fixed .column-date {
+		width: 10%;
+	}
+}
+
+/* When a list still has more columns than fit, it scrolls sideways instead
+   of crushing the Title column (see lists.js). */
+.cas-table-scroll {
+	position: relative;
+	clear: both;
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
+}
+.cas-table-scroll > .wp-list-table {
+	margin: 0;
+}
+@media screen and (max-width: 782px) {
+	.column-cas_thumb img,
+	.column-cas_thumb .cas-nothumb {
+		display: inline-block;
+		vertical-align: middle;
+	}
+	/* The thumbnail sits before the title, so it needs no "Featured image:" label. */
+	.wp-list-table td.column-cas_thumb::before {
+		display: none !important;
+	}
+}

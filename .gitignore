@@ -1,0 +1,5 @@
+*.min.css
+*.new.txt
+_ops*.txt
+.DS_Store
+Thumbs.db
