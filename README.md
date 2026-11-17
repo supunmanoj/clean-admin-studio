@@ -33,6 +33,8 @@ That is all: the Release workflow sees the new version number, builds the plugin
 
 Sites check GitHub every six hours. "Check for updates" on the Plugins screen or under Settings > Clean Admin Studio > Tools asks straight away.
 
+On shared hosting GitHub's API allowance is shared with every other website on the server and is often used up. When that happens the plugin reads the public release page instead, so updates are still found (version 1.7.3 and later).
+
 ## Safety
 
 Add `?cas_safe_mode=1` to any admin address (administrators only), or `define( 'CAS_SAFE_MODE', true );` in `wp-config.php`, to see the admin without any customization.
