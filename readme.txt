@@ -4,14 +4,14 @@ Tags: admin, white label, dashboard, branding, login
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.6.1
+Stable tag: 1.7.0
 License: GPLv2 or later
 
 White-label and simplify the WordPress admin for clients.
 
 == Description ==
 
-Settings live under Settings > Clean Admin Studio. Nothing changes until you switch it on.
+Settings live under Settings > Clean Admin Studio. Nothing changes until you switch it on, with one exception: the Email tab starts with your own sender details and the email log switched on, and both can be switched off there.
 
 * Menu editor: rename, change icons, drag to reorder, hide items and sub-items.
 * Branding: logo, brand name, toolbar brand, footer text, greeting, tab titles.
@@ -24,6 +24,7 @@ Settings live under Settings > Clean Admin Studio. Nothing changes until you swi
 * Notices: collect them behind a bell in the toolbar, or hide them from clients.
 * Clean-up: Help tab, Screen Options, update nags, admin email check.
 * Login page: logo, colors, background image, message, generic error, custom login address.
+* Email: your own From name and address in place of wordpress@your-domain (info@your-domain unless you choose another), reply-to address, a test email, an email log with Send again, and fewer routine emails to the administrator.
 * Version and URLs: remove the version tag, mask asset versions, tidy the page head.
 * Tools: export, import, reset.
 
@@ -45,6 +46,14 @@ Branding and styling apply to everyone. Hiding (menu items, notices, help, scree
 * Deleting the plugin removes all of its settings.
 
 == Changelog ==
+
+= 1.7.0 =
+* New Email tab. Emails that WordPress would send as "WordPress" from wordpress@your-domain now go out under the site name from info@your-domain, or any name and address you choose. Sender details that other plugins set on purpose are left alone unless you switch on "Use for every email".
+* Optional reply-to address and return path.
+* Send a test email and see exactly which name and address it left with.
+* Email log: every email the site sends, with its status and the reason when one fails, and a "Send again" link. Password links are hidden in the log, entries are removed after 30 days (your choice of 1 to 365), and at most the newest 500 are kept.
+* Switches for fewer routine emails to the administrator: new registrations, password resets and successful automatic updates.
+* The log table and its settings are removed when the plugin is deleted.
 
 = 1.6.1 =
 * First version delivered through GitHub updates. Adds this changelog.

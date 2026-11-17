@@ -11,9 +11,10 @@ A WordPress plugin that white-labels and simplifies wp-admin for clients.
 - **Classic Editor**: theme-matching content boxes (Quick answer, FAQ, Tip and more) and editor tune-ups.
 - **Notices and clean-up**: notification bell, Help tab, Screen Options, update nags.
 - **Login page**: logo, colors, background image, message, custom login address.
+- **Email**: your own From name and address in place of `wordpress@your-domain` (default `info@your-domain`), reply-to, test email, an email log with "Send again", and fewer routine admin emails.
 - **Tools**: export, import, reset, safe mode, update check.
 
-Settings live under **Settings > Clean Admin Studio**. Nothing changes until it is switched on.
+Settings live under **Settings > Clean Admin Studio**. Nothing changes until it is switched on, except the Email tab: your own sender details and the email log start switched on, and both can be switched off there.
 
 ## Install
 
