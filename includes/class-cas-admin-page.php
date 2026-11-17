@@ -17,6 +17,9 @@ final class CAS_Admin_Page {
 		add_action( 'admin_post_cas_export', array( __CLASS__, 'export' ) );
 		add_action( 'admin_post_cas_import', array( __CLASS__, 'import' ) );
 		add_action( 'admin_post_cas_reset', array( __CLASS__, 'reset' ) );
+		add_action( 'admin_post_cas_mail_test', array( __CLASS__, 'mail_test' ) );
+		add_action( 'admin_post_cas_mail_resend', array( __CLASS__, 'mail_resend' ) );
+		add_action( 'admin_post_cas_mail_clear', array( __CLASS__, 'mail_clear' ) );
 	}
 
 	public static function menu() {
@@ -165,6 +168,7 @@ final class CAS_Admin_Page {
 			'editor'    => array( 'edit', __( 'Classic Editor', 'clean-admin-studio' ) ),
 			'cleanup'   => array( 'hidden', __( 'Notices & clean-up', 'clean-admin-studio' ) ),
 			'login'     => array( 'lock', __( 'Login page', 'clean-admin-studio' ) ),
+			'email'     => array( 'email', __( 'Email', 'clean-admin-studio' ) ),
 			'privacy'   => array( 'shield', __( 'Version & URLs', 'clean-admin-studio' ) ),
 			'tools'     => array( 'admin-tools', __( 'Tools', 'clean-admin-studio' ) ),
 		);
@@ -196,13 +200,15 @@ final class CAS_Admin_Page {
 					<form method="post" action="options.php" id="cas-form">
 						<?php
 						settings_fields( 'cas_group' );
-						foreach ( array( 'start', 'branding', 'style', 'menu', 'toolbar', 'dashboard', 'analytics', 'content', 'editor', 'cleanup', 'login', 'privacy' ) as $id ) {
+						foreach ( array( 'start', 'branding', 'style', 'menu', 'toolbar', 'dashboard', 'analytics', 'content', 'editor', 'cleanup', 'login', 'email', 'privacy' ) as $id ) {
 							echo '<div class="cas-panel" id="cas-panel-' . esc_attr( $id ) . '" data-panel="' . esc_attr( $id ) . '">';
 							call_user_func( array( __CLASS__, 'panel_' . $id ) );
 							echo '</div>';
 						}
 						?>
 					</form>
+					<?php // The test email has its own small form; its field and button sit in the Email tab. ?>
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="cas-mail-test"><input type="hidden" name="action" value="cas_mail_test" /><?php wp_nonce_field( 'cas_mail_test' ); ?></form>
 					<div class="cas-panel" id="cas-panel-tools" data-panel="tools"><?php self::panel_tools(); ?></div>
 				</div>
 			</div>
@@ -213,7 +219,7 @@ final class CAS_Admin_Page {
 	private static function panel_start() {
 		self::card_open(
 			__( 'How it works', 'clean-admin-studio' ),
-			__( 'Nothing changes until you switch it on. <strong>Branding and styling</strong> apply to everyone. <strong>Hiding</strong> (menu items, notices, help, screen options) applies to clients only, so you keep the full admin. To preview exactly what clients see, open the menu under your name (top right) and choose <strong>Client view</strong>.', 'clean-admin-studio' )
+			__( 'Nothing in the admin changes until you switch it on. The <strong>Email</strong> tab is the exception: the site\'s own sender details and the email log are on from the start, and you can switch either off there. <strong>Branding and styling</strong> apply to everyone. <strong>Hiding</strong> (menu items, notices, help, screen options) applies to clients only, so you keep the full admin. To preview exactly what clients see, open the menu under your name (top right) and choose <strong>Client view</strong>.', 'clean-admin-studio' )
 		);
 		echo '<ul class="cas-steps">';
 		$steps = array(
@@ -226,6 +232,7 @@ final class CAS_Admin_Page {
 			'editor'    => __( 'Add content boxes to the editor', 'clean-admin-studio' ),
 			'cleanup'   => __( 'Tuck notices away', 'clean-admin-studio' ),
 			'login'     => __( 'Design the login page', 'clean-admin-studio' ),
+			'email'     => __( 'Set who emails come from, test and log them', 'clean-admin-studio' ),
 		);
 		foreach ( $steps as $tab => $label ) {
 			echo '<li><a href="#' . esc_attr( $tab ) . '" class="cas-goto" data-tab="' . esc_attr( $tab ) . '">' . esc_html( $label ) . '<span class="dashicons dashicons-arrow-right-alt2"></span></a></li>';
@@ -670,6 +677,86 @@ final class CAS_Admin_Page {
 		self::card_close();
 	}
 
+	private static function panel_email() {
+		$domain  = CAS_Mail::domain();
+		$default = CAS_Mail::default_email();
+		$site    = wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
+
+		/* translators: %s: address such as wordpress@example.com */
+		self::card_open( __( 'Sender', 'clean-admin-studio' ), sprintf( __( 'WordPress sends its emails as "WordPress" from %s. These settings replace that with your own name and address.', 'clean-admin-studio' ), '<code>wordpress@' . esc_html( $domain ) . '</code>' ) );
+		$plugin = CAS_Mail::delivery_plugin();
+		if ( $plugin ) {
+			/* translators: %s: plugin name */
+			echo '<p class="cas-callout cas-callout-warn">' . esc_html( sprintf( __( '%s is active on this site. If it has its own From name or From email set, those are used instead of the ones here.', 'clean-admin-studio' ), $plugin ) ) . '</p>';
+		}
+		self::toggle( 'mail_from_on', __( 'Use my own sender details', 'clean-admin-studio' ) );
+		/* translators: %s: site name */
+		self::text( 'mail_from_name', __( 'From name', 'clean-admin-studio' ), sprintf( __( 'Leave empty to use the site name: %s', 'clean-admin-studio' ), '<strong>' . esc_html( $site ) . '</strong>' ), $site );
+		self::text(
+			'mail_from_email',
+			__( 'From email', 'clean-admin-studio' ),
+			/* translators: %s: email address */
+			( $default ? sprintf( __( 'Leave empty to use %s.', 'clean-admin-studio' ), '<strong>' . esc_html( $default ) . '</strong>' ) . ' ' : '' ) . __( 'Use an address on this site\'s own domain, or emails are more likely to land in spam.', 'clean-admin-studio' ),
+			$default,
+			'email'
+		);
+		self::toggle( 'mail_force', __( 'Use for every email', 'clean-admin-studio' ), __( 'Also replaces sender details that other plugins set on purpose, such as form notifications. When off, only the WordPress default is replaced.', 'clean-admin-studio' ) );
+		self::text( 'mail_reply_to', __( 'Reply-to address', 'clean-admin-studio' ), __( 'Where replies go when an email does not name its own. Leave empty for none.', 'clean-admin-studio' ), '', 'email' );
+		self::toggle( 'mail_return_path', __( 'Send bounces to the From email', 'clean-admin-studio' ), __( 'Sets the return path to match the From email. This helps emails pass spam checks on many hosts.', 'clean-admin-studio' ) );
+		self::card_close();
+
+		self::card_open( __( 'Send a test email', 'clean-admin-studio' ), __( 'Sends a short message using the saved settings, so save any changes first.', 'clean-admin-studio' ) );
+		$user = wp_get_current_user();
+		echo '<div class="cas-row"><div class="cas-row-label"><label for="cas-mail-to">' . esc_html__( 'Send to', 'clean-admin-studio' ) . '</label></div><div class="cas-row-control cas-inline"><input type="email" class="cas-input" id="cas-mail-to" name="to" form="cas-mail-test" value="' . esc_attr( $user->user_email ) . '" required /> <button type="submit" class="button" form="cas-mail-test">' . esc_html__( 'Send test email', 'clean-admin-studio' ) . '</button></div></div>';
+		self::card_close();
+
+		self::card_open( __( 'Fewer notification emails', 'clean-admin-studio' ), __( 'Routine emails WordPress sends to the site administrator. Emails to your visitors and customers are not affected.', 'clean-admin-studio' ) );
+		self::toggle( 'mail_no_user_admin', __( 'No email when someone registers', 'clean-admin-studio' ), __( 'The new person still gets their own welcome email.', 'clean-admin-studio' ) );
+		self::toggle( 'mail_no_pass_admin', __( 'No email when someone resets their password', 'clean-admin-studio' ) );
+		self::toggle( 'mail_no_update_ok', __( 'No email after a successful automatic update', 'clean-admin-studio' ), __( 'You are still told when an automatic update fails.', 'clean-admin-studio' ) );
+		self::card_close();
+
+		self::card_open( __( 'Email log', 'clean-admin-studio' ), __( 'A record of every email the site sends, so you can check that something went out and send it again. "Sent" means it was handed to the server\'s mail system; it cannot confirm it reached the inbox. Password links are hidden in the log.', 'clean-admin-studio' ) );
+		self::toggle( 'mail_log', __( 'Keep a log of emails', 'clean-admin-studio' ) );
+		self::number( 'mail_log_days', __( 'Keep entries for', 'clean-admin-studio' ), __( 'Older entries are removed on their own. At most the newest 500 are kept.', 'clean-admin-studio' ), __( 'days', 'clean-admin-studio' ) );
+
+		$rows  = CAS_Mail::rows( 50 );
+		$total = CAS_Mail::count();
+		if ( ! $rows ) {
+			echo '<p class="cas-muted">' . esc_html__( 'No emails have been logged yet.', 'clean-admin-studio' ) . '</p>';
+		} else {
+			echo '<p class="cas-log-head"><span class="cas-muted">';
+			/* translators: 1: number shown, 2: total number */
+			echo esc_html( $total > count( $rows ) ? sprintf( __( 'Showing the newest %1$s of %2$s emails.', 'clean-admin-studio' ), number_format_i18n( count( $rows ) ), number_format_i18n( $total ) ) : sprintf( _n( '%s email', '%s emails', $total, 'clean-admin-studio' ), number_format_i18n( $total ) ) );
+			echo '</span> <a href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=cas_mail_clear' ), 'cas_mail_clear' ) ) . '">' . esc_html__( 'Clear the log', 'clean-admin-studio' ) . '</a></p>';
+			echo '<div class="cas-log-wrap"><table class="cas-log"><thead><tr><th scope="col">' . esc_html__( 'When', 'clean-admin-studio' ) . '</th><th scope="col">' . esc_html__( 'To', 'clean-admin-studio' ) . '</th><th scope="col">' . esc_html__( 'Subject', 'clean-admin-studio' ) . '</th><th scope="col">' . esc_html__( 'Status', 'clean-admin-studio' ) . '</th><th scope="col"><span class="screen-reader-text">' . esc_html__( 'Actions', 'clean-admin-studio' ) . '</span></th></tr></thead><tbody>';
+			foreach ( $rows as $row ) {
+				$time   = strtotime( $row->sent_at . ' UTC' );
+				$failed = 'failed' === $row->status;
+				$body   = CAS_Mail::readable( $row->body );
+				echo '<tr><td class="cas-log-when" title="' . esc_attr( wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $time ) ) . '">';
+				/* translators: %s: time span such as "2 hours" */
+				echo esc_html( ( time() - $time < DAY_IN_SECONDS ) ? sprintf( __( '%s ago', 'clean-admin-studio' ), human_time_diff( $time, time() ) ) : wp_date( _x( 'j M, H:i', 'short date and time in the email log', 'clean-admin-studio' ), $time ) );
+				echo '</td><td class="cas-log-to">' . esc_html( $row->recipient ) . '</td><td class="cas-log-subject"><details><summary>' . esc_html( '' !== trim( (string) $row->subject ) ? $row->subject : __( '(no subject)', 'clean-admin-studio' ) ) . '</summary>';
+				if ( $failed && '' !== (string) $row->error ) {
+					echo '<p class="cas-log-error">' . esc_html( $row->error ) . '</p>';
+				}
+				if ( '' !== (string) $row->attachments ) {
+					/* translators: %s: file names */
+					echo '<p class="cas-muted">' . esc_html( sprintf( __( 'Attachments: %s', 'clean-admin-studio' ), $row->attachments ) ) . '</p>';
+				}
+				echo '<pre class="cas-log-body">' . esc_html( $body ) . '</pre></details></td>';
+				echo '<td><span class="cas-pill ' . ( $failed ? 'cas-pill-warn' : 'cas-pill-ok' ) . '">' . esc_html( $failed ? __( 'Failed', 'clean-admin-studio' ) : __( 'Sent', 'clean-admin-studio' ) ) . '</span></td><td class="cas-log-act">';
+				if ( CAS_Mail::can_resend( $row ) ) {
+					echo '<a href="' . esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=cas_mail_resend&id=' . (int) $row->id ), 'cas_mail_resend' ) ) . '">' . esc_html__( 'Send again', 'clean-admin-studio' ) . '</a>';
+				}
+				echo '</td></tr>';
+			}
+			echo '</tbody></table></div>';
+		}
+		self::card_close();
+	}
+
 	private static function panel_tools() {
 		if ( current_user_can( 'update_plugins' ) ) {
 			$known  = CAS_Updater::known();
@@ -727,11 +814,50 @@ final class CAS_Admin_Page {
 		check_admin_referer( $action );
 	}
 
-	private static function back( $code, $message, $type = 'success' ) {
-		add_settings_error( 'cas', $code, $message, $type );
+	private static function back( $code, $message, $type = 'success', $tab = 'tools' ) {
+		// WordPress prints these messages as they are, so anything that came from a
+		// mail server or a setting is made safe here.
+		add_settings_error( 'cas', $code, esc_html( $message ), $type );
 		set_transient( 'settings_errors', get_settings_errors(), 30 );
-		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'options-general.php?page=' . CAS_SLUG ) ) . '#tools' );
+		wp_safe_redirect( add_query_arg( 'settings-updated', 'true', admin_url( 'options-general.php?page=' . CAS_SLUG ) ) . '#' . $tab );
 		exit;
+	}
+
+	public static function mail_test() {
+		self::guard( 'cas_mail_test' );
+		$to = isset( $_POST['to'] ) ? sanitize_email( wp_unslash( $_POST['to'] ) ) : '';
+		if ( ! $to || ! is_email( $to ) ) {
+			self::back( 'cas_mail_bad', __( 'Enter a valid email address to send the test to.', 'clean-admin-studio' ), 'error', 'email' );
+		}
+		$result = CAS_Mail::test( $to );
+		if ( ! $result['ok'] ) {
+			/* translators: %s: reason given by the mail system */
+			self::back( 'cas_mail_failed', sprintf( __( 'The test email could not be sent. %s', 'clean-admin-studio' ), $result['error'] ? $result['error'] : __( 'The server gave no reason. Its mail function may be switched off: ask your host, or use an email delivery (SMTP) plugin.', 'clean-admin-studio' ) ), 'error', 'email' );
+		}
+		$sender = $result['from'] ? trim( $result['name'] . ' <' . $result['from'] . '>' ) : '';
+		/* translators: 1: recipient, 2: sender such as "Site Name <info@example.com>" */
+		$text = $sender ? sprintf( __( 'Test email sent to %1$s as %2$s. Check the inbox, and the spam folder if it is not there.', 'clean-admin-studio' ), $to, $sender )
+			/* translators: %s: recipient */
+			: sprintf( __( 'Test email sent to %s. Check the inbox, and the spam folder if it is not there.', 'clean-admin-studio' ), $to );
+		self::back( 'cas_mail_sent', $text, 'success', 'email' );
+	}
+
+	public static function mail_resend() {
+		self::guard( 'cas_mail_resend' );
+		$result = CAS_Mail::resend( isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0 );
+		if ( null === $result ) {
+			self::back( 'cas_mail_noresend', __( 'That email cannot be sent again.', 'clean-admin-studio' ), 'error', 'email' );
+		}
+		if ( ! $result ) {
+			self::back( 'cas_mail_refailed', __( 'The email could not be sent again. See the newest entry in the log for the reason.', 'clean-admin-studio' ), 'error', 'email' );
+		}
+		self::back( 'cas_mail_resent', __( 'Email sent again.', 'clean-admin-studio' ), 'success', 'email' );
+	}
+
+	public static function mail_clear() {
+		self::guard( 'cas_mail_clear' );
+		CAS_Mail::clear();
+		self::back( 'cas_mail_cleared', __( 'The email log was cleared.', 'clean-admin-studio' ), 'success', 'email' );
 	}
 
 	public static function export() {

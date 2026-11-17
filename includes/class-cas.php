@@ -90,6 +90,19 @@ final class CAS {
 			'w_note'              => array( 'bool', 0 ),
 			'w_note_title'        => array( 'text', 'A note from your web team' ),
 			'w_note_body'         => array( 'html', '' ),
+			// Email.
+			'mail_from_on'        => array( 'bool', 1 ),
+			'mail_from_name'      => array( 'text', '' ),
+			'mail_from_email'     => array( 'email', '' ),
+			'mail_force'          => array( 'bool', 0 ),
+			'mail_reply_to'       => array( 'email', '' ),
+			'mail_return_path'    => array( 'bool', 0 ),
+			'mail_log'            => array( 'bool', 1 ),
+			'mail_log_days'       => array( 'int', 30, 1, 365 ),
+			'mail_no_user_admin'  => array( 'bool', 0 ),
+			'mail_no_pass_admin'  => array( 'bool', 0 ),
+			'mail_no_update_ok'   => array( 'bool', 0 ),
+
 			'ga_id'               => array( 'gaid', '' ),
 			'ga_mode'             => array( 'choice', 'auto', array( 'auto', 'force', 'off' ) ),
 			'ga_skip_staff'       => array( 'bool', 1 ),
@@ -254,6 +267,10 @@ final class CAS {
 					break;
 				case 'area':
 					$out[ $k ] = null === $v ? $def[1] : sanitize_textarea_field( $v );
+					break;
+				case 'email':
+					$e         = is_string( $v ) ? sanitize_email( trim( $v ) ) : '';
+					$out[ $k ] = ( $e && is_email( $e ) ) ? $e : '';
 					break;
 				case 'gaid':
 					$g         = strtoupper( trim( (string) $v ) );
