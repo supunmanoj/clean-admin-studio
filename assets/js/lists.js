@@ -1,19 +1,84 @@
-/* Clean Admin Studio - keeps the Title column readable on content lists.
-   When a list has more columns than fit, the Author, Categories and Tags
-   columns give up some of their width first. If that is not enough, the
-   table scrolls sideways instead of squeezing the title into a sliver. */
+/* Clean Admin Studio - keeps content lists readable.
+   When a list has more columns than fit:
+   1. the Author, Categories and Tags columns give up some of their width;
+   2. if the title is still squeezed, our own extra columns (Words, Updated,
+      Views, picture) step aside one at a time, so a list that was already
+      full looks the way it did without them;
+   3. only then does the table scroll sideways instead of squeezing the
+      title into a sliver.
+   A column somebody ticks in Screen Options is never moved aside. */
 ( function () {
 	'use strict';
 
-	var MIN = 180;
+	var MIN = 180;   // What the title should have.
+	var OK = 150;    // Below this, columns step aside and the table may scroll.
 	var FLOOR = 108; // Narrowest a column that gives up room may become.
 	var GIVERS = [ 'author', 'categories', 'tags' ];
+	var OURS = [ 'cas_words', 'cas_modified', 'cas_views', 'cas_thumb' ];
+	var text = window.casLists || {};
 	var table = document.querySelector( '#posts-filter .wp-list-table' );
 	var wrap = null;
 	var timer = null;
+	var store = 'casKeep:' + ( window.typenow || 'post' );
 
 	if ( ! table ) {
 		return;
+	}
+
+	// Columns this person asked for by name on this list.
+	function kept() {
+		try {
+			var saved = JSON.parse( window.localStorage.getItem( store ) || '[]' );
+			return Array.isArray( saved ) ? saved : [];
+		} catch ( e ) {
+			return [];
+		}
+	}
+
+	function keep( key, on ) {
+		var list = kept().filter( function ( item ) {
+			return item !== key;
+		} );
+		if ( on ) {
+			list.push( key );
+		}
+		try {
+			window.localStorage.setItem( store, JSON.stringify( list ) );
+		} catch ( e ) {}
+	}
+
+	// Says in Screen Options why a ticked column is not on the screen.
+	function note( key, on ) {
+		var box = document.getElementById( key + '-hide' );
+		var label = box ? box.parentNode : null;
+		if ( ! label || 'LABEL' !== label.nodeName ) {
+			return;
+		}
+		var old = label.querySelector( '.cas-aside-note' );
+		if ( old ) {
+			label.removeChild( old );
+		}
+		label.removeAttribute( 'title' );
+		if ( on && text.aside ) {
+			var span = document.createElement( 'span' );
+			span.className = 'cas-aside-note';
+			span.textContent = ' (' + text.aside + ')';
+			label.appendChild( span );
+			if ( text.force ) {
+				label.setAttribute( 'title', text.force );
+			}
+		}
+	}
+
+	function aside( key, on ) {
+		table.classList[ on ? 'add' : 'remove' ]( 'cas-aside-' + key );
+		note( key, on );
+	}
+
+	function restore() {
+		OURS.forEach( function ( key ) {
+			aside( key, false );
+		} );
 	}
 
 	function givers() {
@@ -72,9 +137,21 @@
 		}
 	}
 
+	// The title's width once the columns that can spare room have given it.
+	function settle( th ) {
+		release();
+		var width = th.getBoundingClientRect().width;
+		if ( width < MIN ) {
+			slim( Math.ceil( MIN - width ) + 1 );
+			width = th.getBoundingClientRect().width;
+		}
+		return width;
+	}
+
 	function fit() {
 		table.style.minWidth = '';
 		release();
+		restore();
 		if ( window.innerWidth <= 782 ) {
 			return;
 		}
@@ -82,13 +159,21 @@
 		if ( ! th ) {
 			return;
 		}
-		var width = th.getBoundingClientRect().width;
-		if ( width >= MIN ) {
+		var width = settle( th );
+		if ( width >= OK ) {
 			return;
 		}
-		slim( Math.ceil( MIN - width ) + 1 );
-		width = th.getBoundingClientRect().width;
-		if ( width >= MIN - 1 ) {
+		// Our own columns make way, one at a time.
+		var mine = kept();
+		for ( var k = 0; k < OURS.length && width < OK; k++ ) {
+			var cell = table.querySelector( 'thead .column-' + OURS[ k ] );
+			if ( ! cell || ! cell.getBoundingClientRect().width || mine.indexOf( OURS[ k ] ) > -1 ) {
+				continue;
+			}
+			aside( OURS[ k ], true );
+			width = settle( th );
+		}
+		if ( width >= OK ) {
 			return;
 		}
 		if ( ! wrap ) {
@@ -116,7 +201,11 @@
 	window.addEventListener( 'resize', later );
 	// Screen Options: columns being shown or hidden.
 	document.addEventListener( 'click', function ( event ) {
-		if ( event.target && event.target.classList && event.target.classList.contains( 'hide-column-tog' ) ) {
+		var box = event.target;
+		if ( box && box.classList && box.classList.contains( 'hide-column-tog' ) ) {
+			if ( OURS.indexOf( box.value ) > -1 ) {
+				keep( box.value, box.checked );
+			}
 			later();
 		}
 	} );

@@ -526,7 +526,7 @@ final class CAS_Admin_Page {
 
 	private static function panel_content() {
 		$ready = CAS_Widgets::ready();
-		self::card_open( __( 'List columns', 'clean-admin-studio' ), __( 'Extra columns on the Posts, Pages, Products and every other content list. Each person can still hide any column with Screen Options.', 'clean-admin-studio' ) );
+		self::card_open( __( 'List columns', 'clean-admin-studio' ), __( 'Extra columns on the Posts, Pages, Products and every other content list. Each person can still hide any column with Screen Options. On a list that is already too full for the screen, these columns step aside so the list stays readable; tick one in Screen Options to keep it there.', 'clean-admin-studio' ) );
 		self::toggle( 'col_words', __( 'Word count', 'clean-admin-studio' ), __( 'Click the column heading to sort by length.', 'clean-admin-studio' ) );
 		self::toggle( 'col_views', __( 'Views (Google Analytics)', 'clean-admin-studio' ), __( 'How many times each page was viewed. A period picker appears above each list.', 'clean-admin-studio' ) );
 		if ( ! $ready ) {
@@ -534,7 +534,7 @@ final class CAS_Admin_Page {
 		}
 		self::select( 'col_views_period', __( 'Usual period for views', 'clean-admin-studio' ), CAS_Content::periods(), __( 'Each person can switch period on the list itself.', 'clean-admin-studio' ) );
 		self::toggle( 'col_modified', __( 'Last updated', 'clean-admin-studio' ), __( 'When each item was last changed. Sortable.', 'clean-admin-studio' ) );
-		self::toggle( 'col_thumb', __( 'Featured image', 'clean-admin-studio' ), __( 'A small thumbnail at the start of each row.', 'clean-admin-studio' ) );
+		self::toggle( 'col_thumb', __( 'Featured image', 'clean-admin-studio' ), __( 'A small thumbnail at the start of each row, on content types that have featured images.', 'clean-admin-studio' ) );
 		self::toggle( 'col_dedupe', __( 'Replace matching columns from the theme or other plugins', 'clean-admin-studio' ), __( 'Where a column above is showing, a second column with the same information from your theme or another plugin (its own word count, views counter, last-updated date or thumbnail) is taken off that list. Nothing is deleted, and lists that do not show the column above keep the other one.', 'clean-admin-studio' ) );
 		self::card_close();
 

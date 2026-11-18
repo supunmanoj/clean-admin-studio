@@ -84,6 +84,14 @@ final class CAS_Content {
 	public static function assets( $hook ) {
 		if ( 'edit.php' === $hook && self::any_column() ) {
 			wp_enqueue_script( 'cas-lists', CAS_URL . 'assets/js/lists.js', array(), CAS_VERSION, true );
+			wp_localize_script(
+				'cas-lists',
+				'casLists',
+				array(
+					'aside' => __( 'no room on this screen', 'clean-admin-studio' ),
+					'force' => __( 'There is not enough room for this column on this screen. Untick it and tick it again to show it anyway.', 'clean-admin-studio' ),
+				)
+			);
 		}
 	}
 
@@ -103,8 +111,19 @@ final class CAS_Content {
 		return isset( $periods[ $mine ] ) ? $mine : (string) CAS::opt( 'col_views_period' );
 	}
 
+	/**
+	 * The content type of the list being built. Read from the hook name, which
+	 * is also right while a row is redrawn after Quick Edit.
+	 */
+	private static function list_type() {
+		if ( preg_match( '/^manage_(?:edit-(.+)_columns|(.+)_posts_columns)$/', (string) current_filter(), $m ) ) {
+			return '' !== $m[1] ? $m[1] : $m[2];
+		}
+		return isset( $GLOBALS['typenow'] ) ? (string) $GLOBALS['typenow'] : '';
+	}
+
 	public static function add_columns( $cols ) {
-		$type = isset( $GLOBALS['typenow'] ) ? (string) $GLOBALS['typenow'] : '';
+		$type = self::list_type();
 		if ( self::hide_comments_column() && ! ( 'product' === $type && CAS::opt( 'comments_keep_reviews' ) ) ) {
 			unset( $cols['comments'] );
 		}
@@ -112,7 +131,7 @@ final class CAS_Content {
 			return $cols;
 		}
 		$new = array();
-		if ( CAS::opt( 'col_thumb' ) ) {
+		if ( CAS::opt( 'col_thumb' ) && ( '' === $type || post_type_supports( $type, 'thumbnail' ) ) ) {
 			$new['cas_thumb'] = '<span class="dashicons dashicons-format-image" title="' . esc_attr__( 'Featured image', 'clean-admin-studio' ) . '" aria-hidden="true"></span><span class="screen-reader-text">' . esc_html__( 'Featured image', 'clean-admin-studio' ) . '</span>';
 		}
 		if ( CAS::opt( 'col_words' ) ) {
@@ -154,7 +173,7 @@ final class CAS_Content {
 		if ( ! is_array( $cols ) || ! CAS::opt( 'col_dedupe' ) || CAS::safe_mode() ) {
 			return $cols;
 		}
-		$type  = isset( $GLOBALS['typenow'] ) ? (string) $GLOBALS['typenow'] : '';
+		$type  = self::list_type();
 		$rules = array(
 			'cas_words'    => array( '/word[_-]?counts?|(^|[_-])words$/i', array( 'word count', 'word counts', 'wordcount', 'words' ) ),
 			'cas_views'    => array( '/(^|[_-])(post|page)?[_-]?views?([_-]count)?$|pageviews/i', array( 'views', 'post views', 'page views', 'pageviews', 'view count' ) ),
@@ -166,12 +185,15 @@ final class CAS_Content {
 			if ( ! isset( $cols[ $ours ] ) ) {
 				continue;
 			}
-			if ( 'cas_thumb' === $ours && 'product' === $type ) {
-				// A shop's own product picture column belongs to its list: where it
-				// is there, ours steps aside instead.
+			if ( 'cas_thumb' === $ours && ! in_array( $type, array( 'post', 'page' ), true ) ) {
+				// A picture column that comes with a content type (a shop's product
+				// picture, a directory's photo) belongs to its list and may not be
+				// the featured image: where it is there, ours steps aside instead.
+				$own = '/(^|[_-])(thumb(nail)?s?|featured[_-]?image|img|images?|photos?|pictures?)$/i';
+				$say = array_merge( $rule[1], array( 'image', 'photo', 'picture' ) );
 				foreach ( $cols as $key => $label ) {
 					$text = strtolower( trim( wp_strip_all_tags( is_string( $label ) ? $label : '' ) ) );
-					if ( 0 !== strpos( (string) $key, 'cas_' ) && ( preg_match( $rule[0], (string) $key ) || in_array( $text, $rule[1], true ) ) ) {
+					if ( 0 !== strpos( (string) $key, 'cas_' ) && ( preg_match( $own, (string) $key ) || in_array( $text, $say, true ) ) ) {
 						unset( $cols['cas_thumb'] );
 						break;
 					}

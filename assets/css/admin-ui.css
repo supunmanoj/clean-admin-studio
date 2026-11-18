@@ -797,6 +797,19 @@ th.column-cas_thumb .dashicons {
 	}
 }
 
+/* On a list too full to fit, our own columns step aside (see lists.js). */
+@media screen and (min-width: 783px) {
+	.wp-list-table.cas-aside-cas_words .column-cas_words,
+	.wp-list-table.cas-aside-cas_modified .column-cas_modified,
+	.wp-list-table.cas-aside-cas_views .column-cas_views,
+	.wp-list-table.cas-aside-cas_thumb .column-cas_thumb {
+		display: none;
+	}
+}
+.cas-aside-note {
+	color: #787c82;
+}
+
 /* When a list still has more columns than fit, it scrolls sideways instead
    of crushing the Title column (see lists.js). */
 .cas-table-scroll {
