@@ -4,7 +4,7 @@ Tags: admin, white label, dashboard, branding, login
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.7.6
+Stable tag: 1.7.7
 License: GPLv2 or later
 
 White-label and simplify the WordPress admin for clients.
@@ -46,6 +46,9 @@ Branding and styling apply to everyone. Hiding (menu items, notices, help, scree
 * Deleting the plugin removes all of its settings.
 
 == Changelog ==
+
+= 1.7.7 =
+* Crowded content lists: the Author, Categories and Tags columns now give up some of their width to the Title before the table has to scroll sideways, and when it still has to, it scrolls far less than before.
 
 = 1.7.6 =
 * Product lists: where a shop plugin already shows its own product picture, the plugin's Featured image column steps aside, so there is one picture per row.
